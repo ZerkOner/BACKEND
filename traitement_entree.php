@@ -9,11 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit(0);
 }
 
-// Traitement POST formulaire entrée ici
-// Exemple : récupérer $_POST['nom'], $_POST['prenom'], etc.
-// Valider les données, insérer en base, renvoyer un message
-
-// 2. Champs obligatoires
+// 1. Validation des champs obligatoires
 if (
     empty($_POST['nom']) || 
     empty($_POST['prenom']) || 
@@ -23,7 +19,7 @@ if (
     die("Tous les champs obligatoires doivent être remplis.");
 }
 
-// 3. Nettoyage des données
+// 2. Nettoyage des données
 $nom = trim($_POST['nom']);
 $prenom = trim($_POST['prenom']);
 $email = strtolower(trim($_POST['email']));
@@ -33,25 +29,25 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     die("Adresse email invalide.");
 }
 
-// 4. Initialisation des IDs
+// 3. Initialisation des IDs
 $formation_id = null;
 $personnel_id = null;
 
 if ($objet === 'formation') {
     if (empty($_POST['formation_id'])) {
-        die("Vous devez choisir une formation."); // Refus immédiat si vide
+        die("Vous devez choisir une formation.");
     }
     $formation_id = (int)$_POST['formation_id'];
 } elseif ($objet === 'personnel') {
     if (empty($_POST['personnel_id'])) {
-        die("Vous devez choisir une personne à rencontrer."); // Refus immédiat si vide
+        die("Vous devez choisir une personne à rencontrer.");
     }
     $personnel_id = (int)$_POST['personnel_id'];
 } else {
-    die("Vous devez spécifier un motif valide."); // Refus si objet inconnu
+    die("Vous devez spécifier un motif valide.");
 }
 
-// 5. Recherche ou création du visiteur
+// 4. Recherche ou création du visiteur
 try {
     $requete = $pdo->prepare("SELECT * FROM visiteurs WHERE email = ?");
     $requete->execute([$email]);
@@ -60,6 +56,9 @@ try {
     if ($visiteur) {
         $visiteur_id = $visiteur['id'];
         $qr_code_id = $visiteur['qr_code_id'];
+        // Prendre aussi nom/prenom depuis base si tu préfères garder l'existant
+        $nom = $visiteur['nom'];
+        $prenom = $visiteur['prenom'];
     } else {
         $qr_code_id = uniqid("qr_", true);
         $requete = $pdo->prepare("INSERT INTO visiteurs (nom, prenom, email, qr_code_id) VALUES (?, ?, ?, ?)");
@@ -74,7 +73,7 @@ try {
     die("Erreur base de données (visiteur) : " . htmlspecialchars($e->getMessage()));
 }
 
-// 6. Insertion du pointage
+// 5. Insertion du pointage
 try {
     $type_action = 'entrée';
     $horodatage = date('Y-m-d H:i:s');
@@ -91,9 +90,7 @@ try {
     die("Erreur base de données (pointage) : " . htmlspecialchars($e->getMessage()));
 }
 
-// 7. Affichage de confirmation
-?>
-// Récupération du détail pour affichage
+// 6. Récupération du détail pour affichage
 $intitule = '';
 $personnel_nom = '';
 
@@ -112,12 +109,12 @@ if ($objet === 'personnel' && $personnel_id) {
     }
 }
 
-// Réponse JSON attendue par JS
+// 7. Réponse JSON pour le JS frontend
 header('Content-Type: application/json');
 echo json_encode([
     'succes' => true,
-    'nom' => $prenom,
-    'prenom' => $nom,
+    'nom' => $nom,
+    'prenom' => $prenom,
     'horodatage' => $horodatage,
     'qr_code_id' => $qr_code_id,
     'objet' => $objet,
