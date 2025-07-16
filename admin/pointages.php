@@ -34,7 +34,7 @@ if ($is_history_view) {
 $where_clause = count($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
 ?>
 
-<link rel="stylesheet" href="/css/style.css" />
+<link rel="stylesheet" href="../css/style.css" />
 
 <h2>Historique des pointages</h2>
 
