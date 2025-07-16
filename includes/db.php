@@ -2,9 +2,9 @@
 // includes/db.php
 
 $host = 'localhost';
-$dbname = 'qui_est_la';
-$user = 'root';
-$pass = ''; // si tu es en local avec XAMPP
+$dbname = 'u868520261_luciano';
+$user = 'u868520261_luciano';
+$pass = 'Cepegra1';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass);
