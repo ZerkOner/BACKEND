@@ -93,33 +93,35 @@ try {
 
 // 7. Affichage de confirmation
 ?>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Entrée enregistrée</title>
-    <?php
-// Après avoir affiché le message de confirmation de sortie
-?>
+// Récupération du détail pour affichage
+$intitule = '';
+$personnel_nom = '';
 
-<script>
-    setTimeout(() => {
-        window.location.href = 'https://quiest-la.netlify.app/index.html';
-    }, 5000);
-</script>
+if ($objet === 'formation' && $formation_id) {
+    $stmt = $pdo->prepare("SELECT intitule FROM formations WHERE id = ?");
+    $stmt->execute([$formation_id]);
+    $intitule = $stmt->fetchColumn() ?: '';
+}
 
-</head>
-<body>
-    <h2>Bienvenue, <?= htmlspecialchars($prenom) . ' ' . htmlspecialchars($nom) ?> !</h2>
-    <p>Votre entrée a été enregistrée à <?= htmlspecialchars($horodatage) ?>.</p>
+if ($objet === 'personnel' && $personnel_id) {
+    $stmt = $pdo->prepare("SELECT prenom, nom FROM personnels WHERE id = ?");
+    $stmt->execute([$personnel_id]);
+    $personnel = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($personnel) {
+        $personnel_nom = $personnel['prenom'] . ' ' . $personnel['nom'];
+    }
+}
 
-    <?php if ($objet === 'formation'): ?>
-        <p>Vous assistez à la formation ID <?= htmlspecialchars($formation_id) ?>.</p>
-    <?php elseif ($objet === 'personnel'): ?>
-        <p>Vous allez rencontrer un membre du personnel ID <?= htmlspecialchars($personnel_id) ?>.</p>
-    <?php endif; ?>
-
-    <p>Voici votre identifiant unique : <strong><?= htmlspecialchars($qr_code_id) ?></strong></p>
-    <button onclick="window.print()">Imprimer</button>
-</body>
-</html>
+// Réponse JSON attendue par JS
+header('Content-Type: application/json');
+echo json_encode([
+    'succes' => true,
+    'nom' => $prenom,
+    'prenom' => $nom,
+    'horodatage' => $horodatage,
+    'qr_code_id' => $qr_code_id,
+    'objet' => $objet,
+    'intitule' => $intitule,
+    'personnel' => $personnel_nom
+]);
+exit;
