@@ -112,7 +112,7 @@ function afficherErreur($message) {
     <head>
       <meta charset="UTF-8">
       <title>Erreur</title>
-      <meta http-equiv="refresh" content="3;url=https://quiest-la.netlify.app">
+      <meta http-equiv="refresh" content="3;url=https://quiest-la.netlify.app/index.html">
       <style>
         body {
           font-family: Arial, sans-serif;
