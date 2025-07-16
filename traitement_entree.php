@@ -100,17 +100,17 @@ try {
     <title>Entrée enregistrée</title>
     <?php
 // Après avoir affiché le message de confirmation de sortie
-echo '<p>Sortie enregistrée. Vous allez être redirigé dans 5 secondes :D </p>';
 ?>
 
 <script>
-  setTimeout(() => {
-    window.location.href = 'https://qui-est-la.netlify.app';
-  }, 5000);
+    setTimeout(() => {
+        window.location.href = 'https://qui-est-la.netlify.app';
+    }, 5000);
 </script>
 
 </head>
 <body>
+    echo '<p>Sortie enregistrée. Vous allez être redirigé dans 5 secondes :D </p>';
     <h2>Bienvenue, <?= htmlspecialchars($prenom) . ' ' . htmlspecialchars($nom) ?> !</h2>
     <p>Votre entrée a été enregistrée à <?= htmlspecialchars($horodatage) ?>.</p>
 

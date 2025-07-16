@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($admin && password_verify($mdp, $admin['mdp'])) {
         $_SESSION['admin_id'] = $admin['id'];
-        header("Location: dashboard.php");
+        header("Location: index.php");
         exit();
     } else {
         $erreur = "Identifiants incorrects.";
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<link rel="stylesheet" href="/css/login.css">
+<link rel="stylesheet" href="../css/login.css">
 
 <div class="login-container">
     <h2>Connexion administrateur</h2>

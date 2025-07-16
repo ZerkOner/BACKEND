@@ -68,7 +68,7 @@ try {
 <head>
   <meta charset="UTF-8" />
   <title>Sortie enregistrée</title>
-  <meta http-equiv="refresh" content="3;url=index.php">
+  <meta http-equiv="refresh" content="3;url=https://qui-est-la.netlify.app">
   <style>
     body {
       font-family: Arial, sans-serif;

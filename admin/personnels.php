@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/style.css" />
+<link rel="stylesheet" href="../css/style.css" />
 <?php
 session_start();
 if (!isset($_SESSION['admin_id'])) {
