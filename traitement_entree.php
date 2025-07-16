@@ -104,7 +104,7 @@ try {
 
 <script>
     setTimeout(() => {
-        window.location.href = 'https://qui-est-la.netlify.app';
+        window.location.href = 'https://quiest-la.netlify.app';
     }, 5000);
 </script>
 
