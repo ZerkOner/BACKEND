@@ -9,47 +9,36 @@ require_once '../includes/db.php';
 require_once '../includes/header.php';
 
 $type_personne = $_GET['type_personne'] ?? 'tous';
-$type_action = $_GET['type_action'] ?? 'entrée'; // Par défaut : personnes présentes
+$type_action = $_GET['type_action'] ?? 'entrée';
 
-$conditions = [];
 $params = [];
+$filters = [];
 
-$is_history_view = ($type_action === 'toutes');
-
-// Filtre motif (type_personne)
 if ($type_personne === 'formateur') {
-    $conditions[] = "sous.formation_id IS NOT NULL";
+    $filters[] = "entree.formation_id IS NOT NULL";
 } elseif ($type_personne === 'visiteur') {
-    $conditions[] = "sous.personnel_id IS NOT NULL AND sous.formation_id IS NULL";
+    $filters[] = "entree.personnel_id IS NOT NULL AND entree.formation_id IS NULL";
 }
 
-// Filtre action (type_action)
-if ($is_history_view) {
-    // historique complet : on ne filtre pas sur type_action
-} else {
-    $conditions[] = "sous.type_action = ?";
-    $params[] = $type_action;
-}
-
-$where_clause = count($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+$where_clause = count($filters) ? 'WHERE ' . implode(' AND ', $filters) : '';
 ?>
 
 <link rel="stylesheet" href="../css/style.css" />
 
-<h2>Historique des pointages</h2>
+<h2>Historique des pointages (1 ligne par personne)</h2>
 
 <!-- Boutons de sélection rapide -->
 <div style="margin-bottom:20px;">
-     <a href="pointages.php?type_action=toutes&type_personne=<?= htmlspecialchars($type_personne) ?>" 
-    class="btn-home" 
-     style="<?= $type_action === 'toutes' ? 'background-color:#2c3e50;color:#fff;' : '' ?>">
-    Voir tout l'historique
-  </a>
-  <a href="pointages.php?type_action=entrée&type_personne=<?= htmlspecialchars($type_personne) ?>" 
-    class="btn-home" 
-    style="margin-right:10px; <?= $type_action === 'entrée' ? 'background-color:#2c3e50;color:#fff;' : '' ?>">
-    Personnes dans le bâtiment
-</a>
+    <a href="pointages.php?type_action=toutes&type_personne=<?= htmlspecialchars($type_personne) ?>" 
+       class="btn-home" 
+       style="<?= $type_action === 'toutes' ? 'background-color:#2c3e50;color:#fff;' : '' ?>">
+       Voir tout l'historique
+    </a>
+    <a href="pointages.php?type_action=entrée&type_personne=<?= htmlspecialchars($type_personne) ?>" 
+       class="btn-home" 
+       style="margin-right:10px; <?= $type_action === 'entrée' ? 'background-color:#2c3e50;color:#fff;' : '' ?>">
+       Personnes dans le bâtiment
+    </a>
 </div>
 
 <!-- Filtres -->
@@ -62,62 +51,59 @@ $where_clause = count($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : 
       <option value="visiteur" <?= $type_personne === 'visiteur' ? 'selected' : '' ?>>En visite</option>
     </select>
 
-    <label for="type_action">Type d'action :</label>
-    <select name="type_action" id="type_action">
-      <option value="toutes" <?= $type_action === 'toutes' ? 'selected' : '' ?>>Toutes</option>
-      <option value="entrée" <?= $type_action === 'entrée' ? 'selected' : '' ?>>Entrées</option>
-      <option value="sortie" <?= $type_action === 'sortie' ? 'selected' : '' ?>>Sorties</option>
-    </select>
-
     <button type="submit">Filtrer</button>
   </form>
 
-  <!-- Export CSV -->
   <form method="get" action="export_csv.php" class="export-form" style="margin-left:auto;">
     <input type="hidden" name="type_personne" value="<?= htmlspecialchars($type_personne) ?>">
-    <input type="hidden" name="type_action" value="<?= htmlspecialchars($type_action) ?>">
+    <input type="hidden" name="type_action" value="toutes">
     <button type="submit">Exporter CSV</button>
   </form>
 </div>
 
-<!-- Tableau -->
 <table>
   <tr>
-    <th>Date</th>
     <th>Nom du visiteur</th>
-    <th>Action</th>
+    <th>Entrée</th>
+    <th>Sortie</th>
     <th>Motif</th>
     <th>Détail</th>
+    <th>Local</th>
   </tr>
 
 <?php
 try {
     $sql = "
-        SELECT sous.*
-        FROM (
-            SELECT 
-                p.type_action,
-                p.horodatage,
-                v.nom AS visiteur_nom,
-                v.prenom AS visiteur_prenom,
-                p.formation_id,
-                p.personnel_id,
-                f.intitule AS formation_intitule,
-                pe.nom AS personnel_nom,
-                pe.prenom AS personnel_prenom,
-                p.visiteur_id
-            FROM pointages p
-            JOIN visiteurs v ON p.visiteur_id = v.id
-            LEFT JOIN formations f ON p.formation_id = f.id
-            LEFT JOIN personnels pe ON p.personnel_id = pe.id
-            WHERE p.horodatage = (
-                SELECT MAX(p2.horodatage)
-                FROM pointages p2
-                WHERE p2.visiteur_id = p.visiteur_id
+        SELECT 
+            v.nom AS visiteur_nom,
+            v.prenom AS visiteur_prenom,
+            entree.horodatage AS entree_time,
+            sortie.horodatage AS sortie_time,
+            entree.formation_id,
+            entree.personnel_id,
+            f.intitule AS formation_intitule,
+            f.local AS formation_local,
+            pe.nom AS personnel_nom,
+            pe.prenom AS personnel_prenom,
+            pe.local AS personnel_local
+        FROM pointages AS entree
+        JOIN visiteurs v ON entree.visiteur_id = v.id
+        LEFT JOIN pointages AS sortie 
+            ON sortie.visiteur_id = entree.visiteur_id 
+            AND sortie.type_action = 'sortie' 
+            AND sortie.horodatage > entree.horodatage
+            AND NOT EXISTS (
+                SELECT 1 FROM pointages p2
+                WHERE p2.visiteur_id = entree.visiteur_id
+                  AND p2.type_action = 'sortie'
+                  AND p2.horodatage > entree.horodatage
+                  AND p2.horodatage < sortie.horodatage
             )
-        ) AS sous
+        LEFT JOIN formations f ON entree.formation_id = f.id
+        LEFT JOIN personnels pe ON entree.personnel_id = pe.id
+        WHERE entree.type_action = 'entrée'
         $where_clause
-        ORDER BY sous.horodatage DESC
+        ORDER BY entree.horodatage DESC
     ";
 
     $requete = $pdo->prepare($sql);
@@ -125,35 +111,34 @@ try {
 
     while ($row = $requete->fetch(PDO::FETCH_ASSOC)) {
         $nom = htmlspecialchars($row['visiteur_prenom'] . ' ' . $row['visiteur_nom']);
-        $date = htmlspecialchars($row['horodatage']);
-        $action = htmlspecialchars($row['type_action']);
+        $entree = htmlspecialchars($row['entree_time']);
+        $sortie = $row['sortie_time'] ? htmlspecialchars($row['sortie_time']) : '-';
 
-        if ($action === 'sortie') {
-            $motif = 'Sortie';
-            $detail = '-';
-        } elseif (!empty($row['formation_intitule'])) {
+        if (!empty($row['formation_intitule'])) {
             $motif = 'Formation';
             $detail = htmlspecialchars($row['formation_intitule']);
+            $local = htmlspecialchars($row['formation_local']);
         } elseif (!empty($row['personnel_nom'])) {
             $motif = 'Visite';
             $detail = htmlspecialchars($row['personnel_prenom'] . ' ' . $row['personnel_nom']);
+            $local = htmlspecialchars($row['personnel_local']);
         } else {
             $motif = 'Inconnu';
             $detail = '-';
+            $local = '-';
         }
 
-        $classe = ($action === 'entrée') ? 'bg-entree' : 'bg-sortie';
-
-        echo "<tr class=\"$classe\">
-                <td>$date</td>
+        echo "<tr>
                 <td>$nom</td>
-                <td>" . ucfirst($action) . "</td>
+                <td>$entree</td>
+                <td>$sortie</td>
                 <td>$motif</td>
                 <td>$detail</td>
+                <td>$local</td>
               </tr>";
     }
 } catch (PDOException $e) {
-    echo "<tr><td colspan='5'>Erreur : " . htmlspecialchars($e->getMessage()) . "</td></tr>";
+    echo "<tr><td colspan='6'>Erreur : " . htmlspecialchars($e->getMessage()) . "</td></tr>";
 }
 ?>
 </table>

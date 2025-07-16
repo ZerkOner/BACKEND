@@ -1,4 +1,6 @@
-self.addEventListener('install', event => {
+// Utile pour la PWA
+
+/* self.addEventListener('install', event => {
   console.log('Service Worker installé.');
   self.skipWaiting();
 });
@@ -10,3 +12,4 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   event.respondWith(fetch(event.request));
 });
+*/
