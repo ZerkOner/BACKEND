@@ -25,7 +25,7 @@ $where_clause = count($filters) ? 'WHERE ' . implode(' AND ', $filters) : '';
 
 <link rel="stylesheet" href="../css/style.css" />
 
-<h2>Historique des pointages (1 ligne par personne)</h2>
+<h2>Historique des pointages</h2>
 
 <!-- Boutons de sélection rapide -->
 <div style="margin-bottom:20px;">
