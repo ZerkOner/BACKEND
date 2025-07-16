@@ -112,7 +112,7 @@ function afficherErreur($message) {
     <head>
       <meta charset="UTF-8">
       <title>Erreur</title>
-      <meta http-equiv="refresh" content="3;url=index.php">
+      <meta http-equiv="refresh" content="3;url=index.html">
       <style>
         body {
           font-family: Arial, sans-serif;
