@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<link rel="stylesheet" href="/qui_est_la/public/css/login.css">
+<link rel="stylesheet" href="/css/login.css">
 
 <div class="login-container">
     <h2>Connexion administrateur</h2>

@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/qui_est_la/public/css/style.css" />
+<link rel="stylesheet" href="/css/style.css" />
 <?php
 session_start();
 if (!isset($_SESSION['admin_id'])) {
